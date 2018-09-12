@@ -8,7 +8,7 @@ tinc:
   volumes:
     - ./tinc:/etc/tinc
   environment:
-    - IP_ADDR=1.2.3.4
+    - IP_ADDR={{ external_host_public_ip_addr }}
   cap_add:
     - NET_ADMIN
   dns: 8.8.8.8

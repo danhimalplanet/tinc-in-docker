@@ -3,6 +3,11 @@
 - name: print out the hostname of target
   command: hostname
 
+- name: create docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: docker-compose.yml
+
 - name: create tinc dir
   file:
     path: tinc/{{ netname }}/hosts
@@ -23,3 +28,15 @@
   command: docker run --mount type=bind,source=/home/danh/Services/tinc/tinc,target=/etc/tinc  --entrypoint "tincd" vimagick/tinc -n feem -K4096
   args:
     creates: tinc/{{ netname }}/rsa_key.priv
+
+- name: write tinc-up
+  copy:
+    src: tinc-up
+    dest: tinc/{{ netname }}/tinc-up
+    mode: 0755
+
+- name: write tinc-down
+  copy:
+    src: tinc-down
+    dest: tinc/{{ netname }}/tinc-down
+    mode: 0755
