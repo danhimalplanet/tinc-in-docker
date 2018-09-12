@@ -1,0 +1,8 @@
+---
+
+external_host: host
+netname: vpnnet
+gw_external_ip: 
+
+gw_vpn_interface_ip: 172.39.0.1
+vpn_subnet_cidr_netmask: 32

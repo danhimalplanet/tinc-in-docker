@@ -1,0 +1,25 @@
+---
+
+- name: print out the hostname of target
+  command: hostname
+
+- name: create tinc dir
+  file:
+    path: tinc/{{ netname }}/hosts
+    state: directory
+
+- name: create tinc.conf
+  template:
+    src: tinc.conf.j2
+    dest: tinc/{{ netname }}/tinc.conf
+
+- name: central hosts files
+  template:
+    src: host.j2
+    dest: tinc/{{ netname }}/hosts/{{ external_host }}
+
+- name: make a file
+#  command: docker run --mount type=bind,source="$(pwd)"/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
+  command: docker run --mount type=bind,source=/home/danh/Services/tinc/tinc,target=/etc/tinc  --entrypoint "tincd" vimagick/tinc -n feem -K4096
+  args:
+    creates: tinc/{{ netname }}/rsa_key.priv

@@ -1,0 +1,4 @@
+---
+- hosts: vpnhost
+  roles:
+    - tinc-server
