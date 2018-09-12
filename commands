@@ -1,4 +1,5 @@
-# docker run --mount type=bind,source="$(pwd)"/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
-# ansible-vault encrypt_string password123
+echo "secret password" > ~/.vault_pass.txt
+
 export ANSIBLE_VAULT_PASSWORD_FILE=~/.vault_pass.txt
+
 ansible-playbook play.yml

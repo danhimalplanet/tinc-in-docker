@@ -3,7 +3,7 @@
 - name: print out the hostname of target
   command: hostname
 
-- name: create docker-compose.yml
+- name: create docker-compose.yml on tinc host
   template:
     src: server/docker-compose.yml.j2
     dest: docker-compose.yml
@@ -18,16 +18,17 @@
     path: clients
     state: directory
 
-- name: debug stuff
-  debug:
-    msg: "{{ item.name }}"
-  loop: "{{ clients }}"
-
 - name: add client dirs
   file:
-    path: clients/{{ item.name }}/{{ netname }}
+    path: clients/{{ item.name }}/tinc/{{ netname }}/hosts
     state: directory
     recurse: true
+  loop: "{{ clients }}"
+
+- name: create docker-compose.yml in client dirs
+  template:
+    src: clients/docker-compose.yml.j2
+    dest: clients/{{ item.name }}/docker-compose.yml
   loop: "{{ clients }}"
 
 - name: create tinc.conf
@@ -38,19 +39,31 @@
 - name: create client tinc.conf files
   template:
     src: clients/tinc.conf.j2
-    dest: clients/{{ item.name }}/{{ netname }}/tinc.conf
+    dest: clients/{{ item.name }}/tinc/{{ netname }}/tinc.conf
   loop: "{{ clients }}"
 
-- name: create client host files in client dir
-  template:
-    src: clients/host_file.j2
-    dest: clients/{{ item.name }}/{{ netname }}/{{ item.name }}
-  loop: "{{ clients }}"
+#- name: create client host files in client dir
+#  template:
+#    src: clients/host_file.j2
+#    dest: clients/{{ item.name }}/tinc/{{ netname }}/hosts/{{ item.name }}
+#  loop: "{{ clients }}"
 
-- name: tinc server host file
-  template:
-    src: server/host.j2
-    dest: tinc/{{ netname }}/hosts/{{ external_host_name }}
+#- name: create client host files in clients dir of tinc server
+#  template:
+#    src: clients/host_file.j2
+#    dest: tinc/{{ netname }}/hosts/{{ item.name }}
+#  loop: "{{ clients }}"
+
+#- name: tinc server host file ( in /hosts )
+#  template:
+#    src: server/host.j2
+#    dest: tinc/{{ netname }}/hosts/{{ external_host_name }}
+
+#- name: server host file needs to be on clients
+#  template:
+#    src: server/host.j2
+#    dest: clients/{{ item.name }}/tinc/{{ netname }}/hosts/{{ external_host_name }}
+#  loop: "{{ clients }}"
 
 - name: make tinc server net rsa_key.priv
 #  command: docker run --mount type=bind,source="$(pwd)"/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
@@ -58,14 +71,34 @@
   args:
     creates: tinc/{{ netname }}/rsa_key.priv
 
-- name: write tinc-up
+- name: write tinc-up on tinc master server
   copy:
     src: tinc-up
     dest: tinc/{{ netname }}/tinc-up
     mode: 0755
 
-- name: write tinc-down
+- name: write tinc-down on tinc master server
   copy:
     src: tinc-down
     dest: tinc/{{ netname }}/tinc-down
     mode: 0755
+
+- name: write client keypairs and host files in client dirs
+  command: docker run --mount type=bind,source=/home/danh/Services/tinc/clients/{{ item.name }}/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
+  args:
+    creates: clients/{{ item.name }}/tinc/{{ netname }}/rsa_key.priv 
+  loop: "{{ clients }}"
+
+- name: write tinc-up for clients
+  template:
+    src: clients/tinc-up.j2
+    dest: clients/{{ item.name }}/tinc/{{ netname }}/tinc-up
+    mode: 0755
+  loop: "{{ clients }}"
+
+- name: write tinc-down for clients
+  template:
+    src: clients/tinc-down.j2
+    dest: clients/{{ item.name }}/tinc/{{ netname }}/tinc-down
+    mode: 0755
+  loop: "{{ clients }}"
