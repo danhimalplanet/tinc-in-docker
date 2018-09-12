@@ -1,0 +1,26 @@
+# docker-compose.yml
+
+version: "3.5"
+
+services:
+
+  tinc:
+    image: vimagick/tinc
+    container_name: tinc-master
+    ports:
+      - "655:655/tcp"
+      - "655:655/udp"
+    volumes:
+      - ./tinc:/etc/tinc
+    environment:
+      - IP_ADDR={{ external_host_public_ip_addr }}
+    cap_add:
+      - NET_ADMIN
+    dns: 8.8.8.8
+    restart: unless-stopped
+    networks:
+      - tinc
+
+networks:
+  tinc:
+    name: tinc

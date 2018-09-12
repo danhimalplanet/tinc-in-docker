@@ -5,7 +5,7 @@
 
 - name: create docker-compose.yml
   template:
-    src: docker-compose.yml.j2
+    src: server/docker-compose.yml.j2
     dest: docker-compose.yml
 
 - name: create tinc dir
@@ -13,14 +13,43 @@
     path: tinc/{{ netname }}/hosts
     state: directory
 
+- name: create clients dir
+  file:
+    path: clients
+    state: directory
+
+- name: debug stuff
+  debug:
+    msg: "{{ item.name }}"
+  loop: "{{ clients }}"
+
+- name: add client dirs
+  file:
+    path: clients/{{ item.name }}/{{ netname }}
+    state: directory
+    recurse: true
+  loop: "{{ clients }}"
+
 - name: create tinc.conf
   template:
-    src: tinc.conf.j2
+    src: server/tinc.conf.j2
     dest: tinc/{{ netname }}/tinc.conf
 
-- name: central hosts files
+- name: create client tinc.conf files
   template:
-    src: host.j2
+    src: clients/tinc.conf.j2
+    dest: clients/{{ item.name }}/{{ netname }}/tinc.conf
+  loop: "{{ clients }}"
+
+- name: create client host files in client dir
+  template:
+    src: clients/host_file.j2
+    dest: clients/{{ item.name }}/{{ netname }}/{{ item.name }}
+  loop: "{{ clients }}"
+
+- name: tinc server host file
+  template:
+    src: server/host.j2
     dest: tinc/{{ netname }}/hosts/{{ external_host_name }}
 
 - name: make tinc server net rsa_key.priv
