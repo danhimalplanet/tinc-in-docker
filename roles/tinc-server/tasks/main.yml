@@ -16,9 +16,9 @@
 - name: central hosts files
   template:
     src: host.j2
-    dest: tinc/{{ netname }}/hosts/{{ external_host }}
+    dest: tinc/{{ netname }}/hosts/{{ external_host_name }}
 
-- name: make a file
+- name: make tinc server net rsa_key.priv
 #  command: docker run --mount type=bind,source="$(pwd)"/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
   command: docker run --mount type=bind,source=/home/danh/Services/tinc/tinc,target=/etc/tinc  --entrypoint "tincd" vimagick/tinc -n feem -K4096
   args:
