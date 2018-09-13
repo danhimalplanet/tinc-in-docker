@@ -65,11 +65,17 @@
 #    dest: clients/{{ item.name }}/tinc/{{ netname }}/hosts/{{ external_host_name }}
 #  loop: "{{ clients }}"
 
+
 - name: make tinc server net rsa_key.priv
 #  command: docker run --mount type=bind,source="$(pwd)"/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
-  command: docker run --mount type=bind,source=/home/danh/Services/tinc/tinc,target=/etc/tinc  --entrypoint "tincd" vimagick/tinc -n feem -K4096
+  command: docker run --user 1000:1000 --mount type=bind,source=/home/danh/Services/tinc/tinc,target=/etc/tinc  --entrypoint "tincd" vimagick/tinc -n feem -K4096
   args:
     creates: tinc/{{ netname }}/rsa_key.priv
+
+# Add a line to a file if it does not exist, without passing regexp
+#- lineinfile:
+#    path: tinc/{{ netname }}/hosts/{{ external_host_name }}
+#    line: "Address = {{ external_host_public_ip_addr }}"
 
 - name: write tinc-up on tinc master server
   copy:
@@ -84,7 +90,7 @@
     mode: 0755
 
 - name: write client keypairs and host files in client dirs
-  command: docker run --mount type=bind,source=/home/danh/Services/tinc/clients/{{ item.name }}/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
+  command: docker run --user 1000:1000 --mount type=bind,source=/home/danh/Services/tinc/clients/{{ item.name }}/tinc,target=/etc/tinc --entrypoint "tincd" vimagick/tinc -n feem -K4096
   args:
     creates: clients/{{ item.name }}/tinc/{{ netname }}/rsa_key.priv 
   loop: "{{ clients }}"
